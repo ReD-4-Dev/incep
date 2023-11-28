@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mydbmariam
+    volumes:
+      - mariadb:/var/lib/mysql
+    networks:
+      - incnet
+    env_file: .env
+    restart: on-failure
+    ports:
+      - "3306:3306"
+
+  nginx:
+    build: ./requirements/nginx
+    container_name: myserv
+    networks:
+      - incnet
+    restart: on-failure
+    depends_on:
+     - wordpress
+    volumes:
+      - wordpress:/var/www/wordpress
+    ports:
+      - "443:443"
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: mywordpress
+    env_file: .env
+    networks:
+      - incnet
+    volumes:
+      - wordpress:/var/www/wordpress
+    restart: on-failure
+    depends_on:
+      - mariadb
+    #environment:
+    #   WORDPRESS_DB_HOST: mydbmariam
+    #   WORDPRESS_DB_USER: reda
+    #   WORDPRESS_DB_PASSWORD: 123
+    #   WORDPRESS_DB_NAME: wpdb
+
+
+networks:
+  incnet:
+    driver: bridge
+volumes:
+  wordpress:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/rel-mham/data/wordpress'
+  mariadb:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/rel-mham/data/mariadb'
